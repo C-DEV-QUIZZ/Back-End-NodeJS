@@ -22,3 +22,4 @@
  
 
  ## Mise en production de la partie developpement le 30/05/2021
+  ok deploiment
