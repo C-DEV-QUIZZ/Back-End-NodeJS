@@ -47,7 +47,8 @@ app.get("/infos",function(req :any,res: any){
         "MODE" : Environnement.MODE,
         "PORT" : Environnement.PORT,
         "ADRESSEAPI" : Environnement.ADRESSEAPI,
-        "ADRESSEFRONT" : Environnement.ADRESSEFRONT
+        "ADRESSEFRONT" : Environnement.ADRESSEFRONT,
+        "VERSION" : Environnement.VERSION
     });
 });
 
