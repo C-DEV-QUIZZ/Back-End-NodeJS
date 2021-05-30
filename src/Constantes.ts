@@ -12,5 +12,5 @@ export class Environnement{
     static ADRESSEFRONT : string =  process.env.ADRESSEFRONT;
     static ISPRODUCTION : boolean = Boolean(JSON.parse((process.env.ISPRODUCTION)));
     static PORT : string = process.env.PORT;
-    static VERSION : string = process.env.VERSION;
+    static VERSION : string = process.env.BACKVERSION;
 }
