@@ -22,4 +22,4 @@
  
 
  ## Mise en production de la partie developpement le 30/05/2021
-  ok deploiment
+    - fixe dénomination version (car pm2 utilise cette dénomination donc il renvoi la version donnée par pm 2 soit 1.0.0);
