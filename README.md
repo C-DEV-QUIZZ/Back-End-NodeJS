@@ -20,3 +20,5 @@
     (nodemon  garantit d'avoir toujours la dernière version de votre serveur dès que vous sauvegardez, sans devoir relancer manuellement le serveur !): 
 
  
+
+ ## Mise en production de la partie developpement le 30/05/2021
