@@ -1,12 +1,4 @@
-
-
-// TODO :
-    // Gérer les cors ✔
-    // Gérer les controllers pour plusieurs fichiers ✔
-    // connection à l'api ✔
-    // Config des environnements ✔
-    // déploiement
-
+const axios = require("axios");
 import { Environnement } from "./Constantes";
 
 let express = require('express');
@@ -38,7 +30,13 @@ app.use("/controller/modeSolo",modeSoloController);
 
 
 app.get("/ping",function(req :any,res: any){
-    res.json({"message" :"ping back-end ok"});
+    axios.get(Environnement.ADRESSEAPI +'/infos/ping')
+    .then( (response :any) => {
+        res.status(200).json({"message":"ping ok"});
+    })
+    .catch( (error:any) => {
+        res.status(504).json({"message":"Back OK mais erreur avec l'api"});
+    });
 });
 app.get("/infos",function(req :any,res: any){
 
