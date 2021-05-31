@@ -1,6 +1,6 @@
 {
   "name": "back-end-nodejs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Back end du projet mesi",
   "main": "dist/app.js",
   "scripts": {
