@@ -1,26 +1,10 @@
-
-
-// TODO :
-    // Gérer les cors ✔
-    // Gérer les controllers pour plusieurs fichiers ✔
-    // connection à l'api ✔
-    // Config des environnements ✔
-    // déploiement
-
-import { Environnement } from "./Constantes";
-
+import { Environnement, Utile } from "./Constantes";
 let express = require('express');
 const app = express();
-const http  = require("http").createServer(app);
-const cors = require("cors");
-const io = require('socket.io')(http,{
-    cors: {
-        origin: "*",
-        credentials: true
-    },
-    // // path si on veux affecter un chemin dédié au websocket
-    // path: "/test",
-});
+const server  = require("http").createServer(app);
+import * as WebSocket from 'ws';
+const wss = new WebSocket.Server({ server});
+
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(express.static('public'))
@@ -85,31 +69,43 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 //#region  WEBSOCKET
 
 // appeler quand un client se connect
-io.on('connection', (socket : any) =>{
+wss.on('connection',function connection(ws : any, req : any) {
+
+    // attribue un guid au client:
+    ws.guid = Utile.getGuidJoueur();
+
+    // get adresse :
+    console.log(ws._socket.address());
+    console.log(req.socket.remoteAddress);
+
+
     // affiche dans les logs
-    console.log(`Connecté au client ${socket.id}`)
+    console.log(`Connecté au client ${ws.guid}`)
 
-    io.emit('some event', { someProperty: 'some value', otherProperty: 'other value' });
-
-    // Executé quand un client se déconnecte
-    socket.on('disconnect', function () {
-        console.log('A user disconnected');
-    });
+    // appeler que le client se déco
+    ws.on("close", function(w : any){
+        console.log("Déconnectiono du client " + ws.guid);
+        console.log("close");
+    })
 
     // éxécuté quand un client envoi un message
-    socket.on('chat message', (msg : any) => {
+    ws.on('chat message', (msg : any) => {
         console.log('message: ' + msg);
         // on envoi le message à tous ceux abonnée à la room 'channel xxx'
-        io.emit('channel xxx', "Bien joué");
+        ws.emit('channel xxx', "Bien joué");
     });
 
 })
 
+// le serveur web socket écoute 
+wss.on("listening",function listening(ws : any) {
+    console.log("méthode listening");
+}) 
 //#endregion
 
 
 
-http.listen(Environnement.PORT, function () {
+server.listen(Environnement.PORT, function () {
     console.log('Votre app est disponible sur localhost:3000 !')
 })
 module.exports = app;
