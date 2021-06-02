@@ -12,6 +12,7 @@ export class Environnement{
     static ADRESSEFRONT : string =  process.env.ADRESSEFRONT;
     static ISPRODUCTION : boolean = Boolean(JSON.parse((process.env.ISPRODUCTION)));
     static PORT : string = process.env.PORT;
+    static VERSION : string = process.env.BACKVERSION;    
 }
 
 export class Utile
@@ -25,4 +26,3 @@ export class Utile
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
 }
-

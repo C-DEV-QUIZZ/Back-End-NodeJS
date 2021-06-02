@@ -1,4 +1,5 @@
 import { Environnement, Utile } from "./Constantes";
+const axios = require("axios");
 let express = require('express');
 const app = express();
 const server  = require("http").createServer(app);
@@ -22,7 +23,13 @@ app.use("/controller/modeSolo",modeSoloController);
 
 
 app.get("/ping",function(req :any,res: any){
-    res.json({"message" :"ping back-end ok"});
+    axios.get(Environnement.ADRESSEAPI +'/infos/ping')
+    .then( (response :any) => {
+        res.status(200).json({"message":"ping ok"});
+    })
+    .catch( (error:any) => {
+        res.status(504).json({"message":"Back OK mais erreur avec l'api"});
+    });
 });
 app.get("/infos",function(req :any,res: any){
 
@@ -31,7 +38,8 @@ app.get("/infos",function(req :any,res: any){
         "MODE" : Environnement.MODE,
         "PORT" : Environnement.PORT,
         "ADRESSEAPI" : Environnement.ADRESSEAPI,
-        "ADRESSEFRONT" : Environnement.ADRESSEFRONT
+        "ADRESSEFRONT" : Environnement.ADRESSEFRONT,
+        "VERSION" : Environnement.VERSION
     });
 });
 

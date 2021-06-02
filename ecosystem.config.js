@@ -1,6 +1,6 @@
 module.exports = {
   apps : [{
-    script: 'C:/Users/Fabrice/AppData/Local/Jenkins/.jenkins/workspace/MESI-Backend-Dev/dist/app.js',
+    script: 'E:/Hebergements/Sites/MESI-BackEnd-dev/dist/app.js',
     watch: '.'
   }],
 
