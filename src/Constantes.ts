@@ -13,16 +13,6 @@ export class Environnement{
     static ISPRODUCTION : boolean = Boolean(JSON.parse((process.env.ISPRODUCTION)));
     static PORT : string = process.env.PORT;
     static VERSION : string = process.env.BACKVERSION;    
+    static NB_JOUEUR_MAX_MULTI : string = process.env.NBJOUEURMAX;
 }
 
-export class Utile
-{
-    public static getGuidJoueur(){
-        return this.s4() + this.s4() + '-' + this.s4();
-    }
-
-
-    private static s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-}

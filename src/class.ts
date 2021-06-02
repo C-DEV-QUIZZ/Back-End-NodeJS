@@ -26,3 +26,24 @@ export class Difficultes{
     id : number;
     nom : string;
 }
+export class Joueur{
+    pseudo :string;
+    guid : string
+    points : number
+    ListeReponse : Map<number,number>;
+}
+export class Room{
+    guid : string;
+    isFull : boolean;
+    listJoueur : Joueur[]=[];    
+    nbJoueur = this.listJoueur.length;
+
+
+    ajoutJoueur(joueur : Joueur){
+        if (joueur)
+
+
+        this.listJoueur.push(joueur);
+
+    }
+}
