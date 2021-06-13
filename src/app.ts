@@ -61,7 +61,7 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
     if (req.body.mode == 1)
         res.status(200).json({"chemin":"mode-solo"});
     else if (req.body.mode == 2)
-        res.status(200).json({"chemin":"mode-multi"});
+        res.status(200).json({"chemin":"salle-attente"});
     else
         res.status(303).send("Erreur de mode");
 });

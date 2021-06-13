@@ -1,7 +1,7 @@
 export class Utile
 {
     public static getGuidJoueur(){
-        return this.s4() +'-'+ this.GetTimeStampOnSecond + '-' + this.s4();
+        return this.s4() +'-'+ this.GetTimeStampOnSecond() + '-' + this.s4();
     }
 
 
