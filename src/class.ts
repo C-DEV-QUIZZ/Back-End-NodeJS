@@ -40,10 +40,21 @@ export class Room{
 
 
     ajoutJoueur(joueur : Joueur){
+        // Si la liste des joueurs est égal au nombre max de joueur je ne fais rien
+
+
+
+        // on ajout le joueur et on envoi une notif a toute la room
+
         if (joueur)
 
 
         this.listJoueur.push(joueur);
 
     }
+
+    // method envoi notification all room
+
+    // methode delete joueur
+
 }

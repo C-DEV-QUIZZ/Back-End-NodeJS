@@ -1,4 +1,5 @@
-const dotenv = require ('dotenv'); 
+import dotenv from 'dotenv'; 
+//const dotenv = require ('dotenv'); 
 dotenv.config (); 
 
 export class Constantes{

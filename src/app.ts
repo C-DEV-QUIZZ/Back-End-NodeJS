@@ -80,26 +80,28 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 // appeler quand un client se connect
 wss.on('connection',function connection(ws : any, req : any) {
 
+
     // attribue un guid au client:
     ws.guid = Utile.getGuidJoueur();
+    // affiche dans la console du serveur
+    console.log(`Connecté au client ${ws.guid}`);
 
-    // get adresse :
+    // get adresse du client:
     console.log(ws._socket.address());
     console.log(req.socket.remoteAddress);
 
 
-    // affiche dans les logs
-    console.log(`Connecté au client ${ws.guid}`)
-
-    // appeler que le client se déco
+    // appeler quand le client se déco
     ws.on("close", function(w : any){
         console.log("Déconnectiono du client " + ws.guid);
         console.log("close");
     })
 
+
     // éxécuté quand un client envoi un message
     ws.on('chat message', (msg : any) => {
         console.log('message: ' + msg);
+        
         // on envoi le message à tous ceux abonnée à la room 'channel xxx'
         ws.emit('channel xxx', "Bien joué");
     });
