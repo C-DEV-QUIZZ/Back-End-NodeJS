@@ -5,7 +5,7 @@ const app = express();
 const server  = require("http").createServer(app);
 import * as WebSocket from 'ws';
 import { Utile } from "./Utiles";
-import {Joueur, Room} from "./class";
+import {Joueur, Message, Room} from "./class";
 import { IncomingMessage } from "http";
 const wss = new WebSocket.Server({ server});
 
@@ -54,8 +54,6 @@ app.get("/infos",function(req :any,res: any){
 /**ROUTE APPELÉE EN PREMIER POUR LA GESTION DES MODES DE JEU
  */
 app.post('/controller/receptionMode', function (req : any, res :any) {
-    console.log('Got body:', req.body);
-    console.log('mode:', req.body.mode);
     if (req.body.mode == 1)
         res.status(200).json({"chemin":"mode-solo"});
     else if (req.body.mode == 2)
@@ -76,36 +74,56 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 //#region  WEBSOCKET
 
 // appeler quand un client se connect
-wss.on('connection',function connection(ws : any , req : IncomingMessage) {
+wss.on('connection',function connection(client : any , req : IncomingMessage) {
     //ws = client
-
-    let joueur : Joueur = new Joueur();
-    ws.joueur = joueur;
+    let pseudoUser = req.url.split("/")[1];
+    // TODO : ⚠ sécurisé l'entrée utilisateur !
+    let msg;
+    let joueur : Joueur = new Joueur(pseudoUser);
+    client.joueur = joueur;
     // affiche dans la console du serveur
-    console.log(ws.joueur);
 
     // get adresse du client:
-    console.log(ws._socket.address());
     console.log(req.socket.remoteAddress);
     let room : Room = Room.GetEmptyRoom();
-    console.log("Il y a actuellement " + Room.listRoom.length + " room");
-    room.ajoutJoueur(ws.joueur);
+
+    console.log("Nombre de salle existante: " + Room.listRoom.length);
+    room.addJoueurOnRoom(client.joueur);
+    client.room =room;
     console.log("Nombre de joueur dans la salle " + room.nbJoueur);
+    //
+    wss.clients.forEach(function each(ClientsOnMemory:any) {
+        if (ClientsOnMemory.room.guid == client.room.guid){
+            msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de se connecter à la salle : ${client.room.guid}`,client.joueur);
+            ClientsOnMemory.send( JSON.stringify(msg));
+        }
+    });
+
+    // si la salle est pleine
+    if (client.room.isFull){
+        const msg : Message = new Message("action", `La salle ${client.room.guid} est pleine`);
+        wss.clients.forEach(function each(ClientsOnMemory:any) {
+            if (ClientsOnMemory.room.guid == client.room.guid){
+                ClientsOnMemory.send( JSON.stringify(msg));
+            }
+        });
+    }
+
     // appeler quand le client se déco
-    ws.on("close", function(w : any){
-        console.log("Déconnection du client " + ws.joueur);
+    client.on("close", function(w : any){
+        room.deleteJoueurOnRoom(client.joueur);
+        console.log(room.nbJoueur)
+        console.log(`Déconnection du client: ${client.joueur.guid}`);
         console.log("close");
     })
 
 
     // éxécuté quand un client envoi un message
-    ws.on('chat message', (msg : any) => {
+    client.on('chat message', (msg : any) => {
         console.log('message: ' + msg);
-        
         // on envoi le message à tous ceux abonnée à la room 'channel xxx'
-        ws.emit('channel xxx', "Bien joué");
+        client.emit('channel xxx', "Bien joué");
     });
-
 })
 
 // le serveur web socket écoute 

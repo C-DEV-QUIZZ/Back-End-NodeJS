@@ -65,17 +65,41 @@ export class Room{
         return this.listJoueur.length == Environnement.NB_JOUEUR_MAX_MULTI  ? true : false;
     }
 
-    ajoutJoueur(joueur : Joueur){
+    addJoueurOnRoom(joueur : Joueur){
         // Si la liste des joueurs est pleine
         if (this.isFull){
             return;
         }
 
-        // on ajout le joueur et on envoi une notif a toute la room
+        if (this.listJoueur.length ==0){
+            console.log("Premier joueur dans la salle");
+        }
+
+        // on ajout le joueur
         this.listJoueur.push(joueur);
+
+        if (this.isFull){
+            console.log("Dernier joueur dans la salle");
+        }
 
         console.log(`le joueur ${joueur.guid} est associé à la room ${this.guid}`);
 
+
+    }
+
+    deleteJoueurOnRoom(joueur : Joueur){
+        if (this.listJoueur.length == 0)
+        {
+            return;
+        }
+
+        this.listJoueur.forEach( (item, index) => {
+            if(item.guid === joueur.guid){
+                this.listJoueur.splice(index,1);
+                console.log("Le joueur à été supprimé de la room" + this.guid);
+                return;
+            }
+        });
 
     }
 
@@ -109,5 +133,19 @@ export class Room{
         let newRoom : Room = new Room();
         Room.listRoom.push(newRoom);
         return newRoom;
+    }
+}
+
+export class Message{
+    tag : String;
+    message :String;
+    objet : object;
+    constructor(tag: string, msg :string,obj : object = null) {
+        this.tag = tag;
+        this.message = msg;
+        if (obj == null){
+            return;
+        }
+        this.objet = obj;
     }
 }
