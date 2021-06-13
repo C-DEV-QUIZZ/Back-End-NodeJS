@@ -16,7 +16,7 @@ npm i
 Cela a pour but de récupérer les dépendances liées au projet.
 Une fois les dépendances téléchargées, il faut build le projet pour cela faite :
 ```sh
-node run build
+npm run build
 ```
 
 Une fois le build terminé, faite la commande pour démarrer votre serveur 
