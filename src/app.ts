@@ -5,7 +5,13 @@ const app = express();
 const server  = require("http").createServer(app);
 import * as WebSocket from 'ws';
 import { Utile } from "./Utiles";
+import {Joueur, Room} from "./class";
+import { IncomingMessage } from "http";
 const wss = new WebSocket.Server({ server});
+
+
+//#region PARAMETRAGE
+
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -43,17 +49,9 @@ app.get("/infos",function(req :any,res: any){
         "VERSION" : Environnement.VERSION
     });
 });
+//#endregion
 
-
-
-
-
-
-
-
-
-/**
- *  ROUTE APPELÉE EN PREMIER POUR LA GESTION DES MODES DE JEU
+/**ROUTE APPELÉE EN PREMIER POUR LA GESTION DES MODES DE JEU
  */
 app.post('/controller/receptionMode', function (req : any, res :any) {
     console.log('Got body:', req.body);
@@ -78,22 +76,24 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 //#region  WEBSOCKET
 
 // appeler quand un client se connect
-wss.on('connection',function connection(ws : any, req : any) {
+wss.on('connection',function connection(ws : any , req : IncomingMessage) {
+    //ws = client
 
-
-    // attribue un guid au client:
-    ws.guid = Utile.getGuidJoueur();
+    let joueur : Joueur = new Joueur();
+    ws.joueur = joueur;
     // affiche dans la console du serveur
-    console.log(`Connecté au client ${ws.guid}`);
+    console.log(ws.joueur);
 
     // get adresse du client:
     console.log(ws._socket.address());
     console.log(req.socket.remoteAddress);
-
-
+    let room : Room = Room.GetEmptyRoom();
+    console.log("Il y a actuellement " + Room.listRoom.length + " room");
+    room.ajoutJoueur(ws.joueur);
+    console.log("Nombre de joueur dans la salle " + room.nbJoueur);
     // appeler quand le client se déco
     ws.on("close", function(w : any){
-        console.log("Déconnectiono du client " + ws.guid);
+        console.log("Déconnection du client " + ws.joueur);
         console.log("close");
     })
 
@@ -112,6 +112,7 @@ wss.on('connection',function connection(ws : any, req : any) {
 wss.on("listening",function listening(ws : any) {
     console.log("méthode listening");
 }) 
+
 //#endregion
 
 

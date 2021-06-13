@@ -14,6 +14,6 @@ export class Environnement{
     static ISPRODUCTION : boolean = Boolean(JSON.parse((process.env.ISPRODUCTION)));
     static PORT : string = process.env.PORT;
     static VERSION : string = process.env.BACKVERSION;    
-    static NB_JOUEUR_MAX_MULTI : string = process.env.NBJOUEURMAX;
+    static NB_JOUEUR_MAX_MULTI : number = Number(process.env.NBJOUEURMAX);
 }
 
