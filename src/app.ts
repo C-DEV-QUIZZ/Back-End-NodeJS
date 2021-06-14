@@ -8,6 +8,7 @@ import { Utile } from "./Utiles";
 import {Joueur, Message, Room} from "./class";
 import { IncomingMessage } from "http";
 const wss = new WebSocket.Server({ server});
+var xss = require('xss');
 
 
 //#region PARAMETRAGE
@@ -76,22 +77,38 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 // appeler quand un client se connect
 wss.on('connection',function connection(client : any , req : IncomingMessage) {
     //ws = client
-    let pseudoUser = req.url.split("/")[1];
-    // TODO : ⚠ sécurisé l'entrée utilisateur !
-    let msg;
-    let joueur : Joueur = new Joueur(pseudoUser);
-    client.joueur = joueur;
-    // affiche dans la console du serveur
+    let pseudoUser = xss(req.url.split("/")[1]);
 
-    // get adresse du client:
+    let msg;
+
+    // Création du player grace au pseudo:
+    let joueur : Joueur = new Joueur(pseudoUser);
+
+    // on affecte dans wsClient le joueur
+    client.joueur = joueur;
+
+
+    // on affiche l'adresse du client:
     console.log(req.socket.remoteAddress);
+
+    // récupère une room 
     let room : Room = Room.GetEmptyRoom();
 
+    // log du nombre de salle existante.
     console.log("Nombre de salle existante: " + Room.listRoom.length);
+
+    // on ajoute le joueur à la room (push le joueur dans la liste de la room)
     room.addJoueurOnRoom(client.joueur);
+
+    // Dans le wsClient on lui affecte la room
     client.room =room;
     console.log("Nombre de joueur dans la salle " + room.nbJoueur);
 
+    /* 
+    ==>  A ce stade le ws client à un objet joueur associé et une room ==
+    */
+
+    // on envoi au client son numéro unique et le numéro unique de la room.
     let dataInfos = {
         roomGuid : client.room.guid,
         clientGuid : client.joueur.guid
@@ -99,9 +116,13 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     msg = new Message("action", `L'identifiant unique du client ${client.joueur.guid}`,dataInfos);
     client.send(JSON.stringify(msg))
 
-    //
+    // on fait le tour de tous les ws-clients présents sur le serveur websocket (en mémoire)
     wss.clients.forEach(function each(ClientsOnMemory:any) {
+        // si le ws-clients en mémoire a la même room que le client actuelle ( qui viens de se connecter à la room) 
         if (ClientsOnMemory.room.guid == client.room.guid){
+            // on envoi un message a tous pour les prévenirs qu'un new joueur viens de co 
+            // et on envoi en plus la liste de tous les joueurs de la room (avec ce joueur) a tous le monde 
+            // pour qu'il actualise leur liste.
             msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de se connecter à la salle : ${client.room.guid}`,room.listJoueur);
             ClientsOnMemory.send( JSON.stringify(msg));
         }
@@ -110,6 +131,8 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     // si la salle est pleine
     if (client.room.isFull){
         const msg : Message = new Message("action", `La salle ${client.room.guid} est pleine`);
+        
+        // on envoi un socket à tous ceux de la salle pour les prévenirs.
         wss.clients.forEach(function each(ClientsOnMemory:any) {
             if (ClientsOnMemory.room.guid == client.room.guid){
                 ClientsOnMemory.send( JSON.stringify(msg));
@@ -119,19 +142,19 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
 
     // appeler quand le client se déco
     client.on("close", function(w : any){
+
+        // on le delete de la room qui lui était attribué.
         room.deleteJoueurOnRoom(client.joueur);
 
+        // Puis on notifie tous ceux qui était dans la même room que lui
         wss.clients.forEach(function each(ClientsOnMemory:any) {
             if (ClientsOnMemory.room.guid == client.room.guid){
                 msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de quitter à la salle : ${client.room.guid}`,room.listJoueur);
                 ClientsOnMemory.send( JSON.stringify(msg));
             }
         });
-
-
         console.log(room.nbJoueur)
         console.log(`Déconnection du client: ${client.joueur.guid}`);
-        console.log("close");
     })
 
 
@@ -147,7 +170,6 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
 wss.on("listening",function listening(ws : any) {
     console.log("méthode listening");
 }) 
-
 //#endregion
 
 
