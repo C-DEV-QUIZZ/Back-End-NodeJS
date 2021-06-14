@@ -92,7 +92,11 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     client.room =room;
     console.log("Nombre de joueur dans la salle " + room.nbJoueur);
 
-    msg = new Message("action", `L'identifiant unique du client ${client.joueur.guid}`,client.joueur.guid);
+    let dataInfos = {
+        roomGuid : client.room.guid,
+        clientGuid : client.joueur.guid
+    }
+    msg = new Message("action", `L'identifiant unique du client ${client.joueur.guid}`,dataInfos);
     client.send(JSON.stringify(msg))
 
     //
