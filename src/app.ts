@@ -91,10 +91,14 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     room.addJoueurOnRoom(client.joueur);
     client.room =room;
     console.log("Nombre de joueur dans la salle " + room.nbJoueur);
+
+    msg = new Message("action", `L'identifiant unique du client ${client.joueur.guid}`,client.joueur.guid);
+    client.send(JSON.stringify(msg))
+
     //
     wss.clients.forEach(function each(ClientsOnMemory:any) {
         if (ClientsOnMemory.room.guid == client.room.guid){
-            msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de se connecter à la salle : ${client.room.guid}`,client.joueur);
+            msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de se connecter à la salle : ${client.room.guid}`,room.listJoueur);
             ClientsOnMemory.send( JSON.stringify(msg));
         }
     });
@@ -112,6 +116,15 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     // appeler quand le client se déco
     client.on("close", function(w : any){
         room.deleteJoueurOnRoom(client.joueur);
+
+        wss.clients.forEach(function each(ClientsOnMemory:any) {
+            if (ClientsOnMemory.room.guid == client.room.guid){
+                msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de quitter à la salle : ${client.room.guid}`,room.listJoueur);
+                ClientsOnMemory.send( JSON.stringify(msg));
+            }
+        });
+
+
         console.log(room.nbJoueur)
         console.log(`Déconnection du client: ${client.joueur.guid}`);
         console.log("close");
