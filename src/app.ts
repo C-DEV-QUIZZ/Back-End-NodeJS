@@ -64,21 +64,11 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 });
 
 
-
-
-
-
-
-
-
-
 //#region  WEBSOCKET
 
 // appeler quand un client se connect
 wss.on('connection',function connection(client : any , req : IncomingMessage) {
-    //ws = client
     let pseudoUser = xss(req.url.split("/")[1]);
-
     let msg;
 
     // Création du player grace au pseudo:
@@ -100,8 +90,10 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     // on ajoute le joueur à la room (push le joueur dans la liste de la room)
     room.addJoueurOnRoom(client.joueur);
 
+
     // Dans le wsClient on lui affecte la room
     client.room =room;
+
     console.log("Nombre de joueur dans la salle " + room.nbJoueur);
 
     /* 
@@ -130,11 +122,11 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
 
     // si la salle est pleine
     if (client.room.isFull){
-        const msg : Message = new Message("action", `La salle ${client.room.guid} est pleine`);
-        
+
         // on envoi un socket à tous ceux de la salle pour les prévenirs.
         wss.clients.forEach(function each(ClientsOnMemory:any) {
             if (ClientsOnMemory.room.guid == client.room.guid){
+                msg = new Message("GameIsReady", `La partie va commencer`);
                 ClientsOnMemory.send( JSON.stringify(msg));
             }
         });
