@@ -5,7 +5,7 @@ const app = express();
 const server  = require("http").createServer(app);
 import * as WebSocket from 'ws';
 import { Utile } from "./Utiles";
-import {Joueur, Message, Room} from "./class";
+import {Joueur, Message, Question, QuestionModelView, Room} from "./class";
 import { IncomingMessage } from "http";
 const wss = new WebSocket.Server({ server});
 var xss = require('xss');
@@ -67,12 +67,12 @@ app.post('/controller/receptionMode', function (req : any, res :any) {
 //#region  WEBSOCKET
 
 // appeler quand un client se connect
-wss.on('connection',function connection(client : any , req : IncomingMessage) {
+wss.on('connection',async function connection(client: any, req: IncomingMessage) {
     let pseudoUser = xss(req.url.split("/")[1]);
     let msg;
 
     // Création du player grace au pseudo:
-    let joueur : Joueur = new Joueur(pseudoUser);
+    let joueur: Joueur = new Joueur(pseudoUser);
 
     // on affecte dans wsClient le joueur
     client.joueur = joueur;
@@ -82,7 +82,7 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
     console.log(req.socket.remoteAddress);
 
     // récupère une room 
-    let room : Room = Room.GetEmptyRoom();
+    let room: Room = Room.GetEmptyRoom();
 
     // log du nombre de salle existante.
     console.log("Nombre de salle existante: " + Room.listRoom.length);
@@ -92,7 +92,7 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
 
 
     // Dans le wsClient on lui affecte la room
-    client.room =room;
+    client.room = room;
 
     console.log("Nombre de joueur dans la salle " + room.nbJoueur);
 
@@ -102,47 +102,83 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
 
     // on envoi au client son numéro unique et le numéro unique de la room.
     let dataInfos = {
-        roomGuid : client.room.guid,
-        clientGuid : client.joueur.guid
+        roomGuid: client.room.guid,
+        clientGuid: client.joueur.guid
     }
-    msg = new Message("action", `L'identifiant unique du client ${client.joueur.guid}`,dataInfos);
+    msg = new Message("action", `L'identifiant unique du client ${client.joueur.guid}`, dataInfos);
     client.send(JSON.stringify(msg))
 
     // on fait le tour de tous les ws-clients présents sur le serveur websocket (en mémoire)
-    wss.clients.forEach(function each(ClientsOnMemory:any) {
+    wss.clients.forEach(function each(ClientsOnMemory: any) {
         // si le ws-clients en mémoire a la même room que le client actuelle ( qui viens de se connecter à la room) 
-        if (ClientsOnMemory.room.guid == client.room.guid){
+        if (ClientsOnMemory.room.guid == client.room.guid) {
             // on envoi un message a tous pour les prévenirs qu'un new joueur viens de co 
             // et on envoi en plus la liste de tous les joueurs de la room (avec ce joueur) a tous le monde 
             // pour qu'il actualise leur liste.
-            msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de se connecter à la salle : ${client.room.guid}`,room.listJoueur);
-            ClientsOnMemory.send( JSON.stringify(msg));
+            msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de se connecter à la salle : ${client.room.guid}`, room.listJoueur);
+            ClientsOnMemory.send(JSON.stringify(msg));
         }
     });
 
     // si la salle est pleine
-    if (client.room.isFull){
+    if (client.room.isFull) {
 
         // on envoi un socket à tous ceux de la salle pour les prévenirs.
-        wss.clients.forEach(function each(ClientsOnMemory:any) {
-            if (ClientsOnMemory.room.guid == client.room.guid){
+        wss.clients.forEach(function each(ClientsOnMemory: any) {
+            if (ClientsOnMemory.room.guid == client.room.guid) {
                 msg = new Message("GameIsReady", `La partie va commencer`);
-                ClientsOnMemory.send( JSON.stringify(msg));
+                ClientsOnMemory.send(JSON.stringify(msg));
             }
         });
+
+        let listQuestions;
+        // on récupère x Questions pour les joueurs de la salle
+        listQuestions = await axios.get(Environnement.ADRESSEAPI + 'questions/modeMulti')
+            .then(async (response: any) => {
+                return await response.data;
+            })
+            .catch((error: any) => {
+                console.log("erreur lors du contact avec l'api");
+            });
+
+        console.table(listQuestions);
+        console.log("=================================");
+        let ListQuestionModel =  listQuestions.map((x : Question)=> new QuestionModelView(x));
+        console.table(ListQuestionModel);
+
+        let compteur = 0;
+
+        // on démarre une timer interval et envoi une notification toutes les x secondes
+        let TimerInterval= setInterval(() => {
+            console.log(compteur);
+            if(ListQuestionModel.length == compteur)
+            {
+                clearInterval(TimerInterval);
+                console.log("TIMER FINI !!!");
+                return;
+            }
+            // on envoi un socket à tous ceux de la salle pour les prévenirs.
+            wss.clients.forEach(function each(ClientsOnMemory: any) {
+                if (ClientsOnMemory.room.guid == client.room.guid) {
+                    msg = new Message("NewQuestion", `valeur ${compteur}`,ListQuestionModel[compteur]);
+                    ClientsOnMemory.send(JSON.stringify(msg));
+                }
+            });
+            compteur++;
+        }, 10000);
     }
 
     // appeler quand le client se déco
-    client.on("close", function(w : any){
+    client.on("close", function (w: any) {
 
         // on le delete de la room qui lui était attribué.
         room.deleteJoueurOnRoom(client.joueur);
 
         // Puis on notifie tous ceux qui était dans la même room que lui
-        wss.clients.forEach(function each(ClientsOnMemory:any) {
-            if (ClientsOnMemory.room.guid == client.room.guid){
-                msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de quitter à la salle : ${client.room.guid}`,room.listJoueur);
-                ClientsOnMemory.send( JSON.stringify(msg));
+        wss.clients.forEach(function each(ClientsOnMemory: any) {
+            if (ClientsOnMemory.room.guid == client.room.guid) {
+                msg = new Message("connectionPlayer", `Le client ${client.joueur.guid} viens de quitter à la salle : ${client.room.guid}`, room.listJoueur);
+                ClientsOnMemory.send(JSON.stringify(msg));
             }
         });
         console.log(room.nbJoueur)
@@ -151,7 +187,7 @@ wss.on('connection',function connection(client : any , req : IncomingMessage) {
 
 
     // éxécuté quand un client envoi un message
-    client.on('chat message', (msg : any) => {
+    client.on('chat message', (msg: any) => {
         console.log('message: ' + msg);
         // on envoi le message à tous ceux abonnée à la room 'channel xxx'
         client.emit('channel xxx', "Bien joué");

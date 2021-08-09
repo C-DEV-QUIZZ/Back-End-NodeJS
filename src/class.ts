@@ -16,6 +16,21 @@ export class Question{
     difficultes : Difficultes;
 }
 
+export class QuestionModelView{
+    id : number;
+    texte : string;
+    points : number;
+    reponses : Reponses[];
+    difficultes : Difficultes;
+    constructor(question : Question) {
+        this.id = question.id;
+        this.texte = question.texte;
+        this.points = question.points;
+        this.reponses = question.reponses;
+        this.difficultes = question.difficultes;
+    }
+}
+
 export class BonneReponse{
     id : number;
     texte : string;
