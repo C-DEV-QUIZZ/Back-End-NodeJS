@@ -151,25 +151,27 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
 
         wss.clients.forEach(function each(ClientsOnMemory: any) {
             if (ClientsOnMemory.room.guid == client.room.guid) {
-                let msg = new Message("GameReadyToPlay", "La partie va commencer dans", 20);
+                let msg = new Message("GameReadyToPlay", "La partie va commencer dans", 15);
                 ClientsOnMemory.send(JSON.stringify(msg));
             }
         });
+
         // Après 20 s on commencer le timer
         setTimeout(()=>{
+            client.room.IsPartyStarted= true;
             let compteur = 0;
             // on change de page et on envoi une question
             // on envoi une question à tous ceux de la salle.
             wss.clients.forEach(function each(ClientsOnMemory: any) {
                 if (ClientsOnMemory.room.guid == client.room.guid) {
                     msg = new Message("changePage", "mode-multi");
-                    let msg2 = new Message("ReceivedQuestion", ``, ListQuestionModel[compteur]);
+                    let msg2 = new Message("ReceivedQuestion", `10`, ListQuestionModel[compteur]);
                     ClientsOnMemory.send(JSON.stringify(msg));
                     ClientsOnMemory.send(JSON.stringify(msg2));
                 }
             });
-
             compteur++;
+
             // on démarre une timer interval et envoi une notification toutes les x secondes
             let TimerInterval= setInterval(() => {
                 console.log(compteur);
@@ -182,14 +184,13 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
                 // on envoi une question à tous ceux de la salle.
                 wss.clients.forEach(function each(ClientsOnMemory: any) {
                     if (ClientsOnMemory.room.guid == client.room.guid) {
-                        msg = new Message("ReceivedQuestion", `valeur ${compteur}`,ListQuestionModel[compteur]);
+                        msg = new Message("ReceivedQuestion", `10`,ListQuestionModel[compteur]);
                         ClientsOnMemory.send(JSON.stringify(msg));
                     }
                 });
                 compteur++;
             }, 10000);
-
-        },20_000);
+        },15_000); // temps avant changement de page et commencement interval
 
         // SendNotification( client,"GameReadyToPlay","La partie va commencer dans ", 20);
         // envoi vers la page  Page d'attente

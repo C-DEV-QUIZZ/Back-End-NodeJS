@@ -62,7 +62,7 @@ export class Room{
     static listRoom :Array<Room> = [];
     guid : string;
     listJoueur : Joueur[]=[];        
-
+    IsPartyStarted : boolean =false;
     constructor(){
         this.guid = Utile.getGuidRoom();
         // boucle tant que le guid généré pour la nouvelle room
@@ -95,6 +95,7 @@ export class Room{
 
         if (this.isFull){
             console.log("Dernier joueur dans la salle");
+
         }
 
         console.log(`le joueur ${joueur.guid} est associé à la room ${this.guid}`);
@@ -133,7 +134,7 @@ export class Room{
 
         for (let i = 0; i< Room.listRoom.length ;i++){
 
-            if (Room.listRoom[i].isFull == false){
+            if (Room.listRoom[i].isFull == false && Room.listRoom[i].IsPartyStarted == false){
                 cpt = i;
                 return Room.listRoom[i];
             }
