@@ -154,8 +154,8 @@ export class Room{
 export class Message{
     tag : String;
     message :String;
-    objet : object;
-    constructor(tag: string, msg :string,obj : object = null) {
+    objet : any;
+    constructor(tag: string, msg :string,obj : any = null) {
         this.tag = tag;
         this.message = msg;
         if (obj == null){

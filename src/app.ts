@@ -126,13 +126,13 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
         // on envoi un socket à tous ceux de la salle pour les prévenirs.
         wss.clients.forEach(function each(ClientsOnMemory: any) {
             if (ClientsOnMemory.room.guid == client.room.guid) {
-                msg = new Message("GameIsReady", `La partie va commencer`);
+                msg = new Message("PlayersReadyToPlay", `Récupération des questions ...`);
                 ClientsOnMemory.send(JSON.stringify(msg));
             }
         });
 
-        let listQuestions;
         // on récupère x Questions pour les joueurs de la salle
+        let listQuestions;
         listQuestions = await axios.get(Environnement.ADRESSEAPI + 'questions/modeMulti')
             .then(async (response: any) => {
                 return await response.data;
@@ -141,31 +141,60 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
                 console.log("erreur lors du contact avec l'api");
             });
 
+
+        // on convertie les questions en question model view
         console.table(listQuestions);
         console.log("=================================");
         let ListQuestionModel =  listQuestions.map((x : Question)=> new QuestionModelView(x));
         console.table(ListQuestionModel);
 
-        let compteur = 0;
 
-        // on démarre une timer interval et envoi une notification toutes les x secondes
-        let TimerInterval= setInterval(() => {
-            console.log(compteur);
-            if(ListQuestionModel.length == compteur)
-            {
-                clearInterval(TimerInterval);
-                console.log("TIMER FINI !!!");
-                return;
+        wss.clients.forEach(function each(ClientsOnMemory: any) {
+            if (ClientsOnMemory.room.guid == client.room.guid) {
+                let msg = new Message("GameReadyToPlay", "La partie va commencer dans", 20);
+                ClientsOnMemory.send(JSON.stringify(msg));
             }
-            // on envoi un socket à tous ceux de la salle pour les prévenirs.
+        });
+        // Après 20 s on commencer le timer
+        setTimeout(()=>{
+            let compteur = 0;
+            // on change de page et on envoi une question
+            // on envoi une question à tous ceux de la salle.
             wss.clients.forEach(function each(ClientsOnMemory: any) {
                 if (ClientsOnMemory.room.guid == client.room.guid) {
-                    msg = new Message("NewQuestion", `valeur ${compteur}`,ListQuestionModel[compteur]);
+                    msg = new Message("changePage", "mode-multi");
+                    let msg2 = new Message("ReceivedQuestion", ``, ListQuestionModel[compteur]);
                     ClientsOnMemory.send(JSON.stringify(msg));
+                    ClientsOnMemory.send(JSON.stringify(msg2));
                 }
             });
+
             compteur++;
-        }, 10000);
+            // on démarre une timer interval et envoi une notification toutes les x secondes
+            let TimerInterval= setInterval(() => {
+                console.log(compteur);
+                if(ListQuestionModel.length == compteur)
+                {
+                    clearInterval(TimerInterval);
+                    console.log("TIMER FINI !!!");
+                    return;
+                }
+                // on envoi une question à tous ceux de la salle.
+                wss.clients.forEach(function each(ClientsOnMemory: any) {
+                    if (ClientsOnMemory.room.guid == client.room.guid) {
+                        msg = new Message("ReceivedQuestion", `valeur ${compteur}`,ListQuestionModel[compteur]);
+                        ClientsOnMemory.send(JSON.stringify(msg));
+                    }
+                });
+                compteur++;
+            }, 10000);
+
+        },20_000);
+
+        // SendNotification( client,"GameReadyToPlay","La partie va commencer dans ", 20);
+        // envoi vers la page  Page d'attente
+        // notifie récupère question + envoi dans le sas
+
     }
 
     // appeler quand le client se déco
@@ -197,6 +226,7 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
 // le serveur web socket écoute 
 wss.on("listening",function listening(ws : any) {
     console.log("méthode listening");
+
 }) 
 //#endregion
 
