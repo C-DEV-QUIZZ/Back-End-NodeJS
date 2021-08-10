@@ -119,7 +119,8 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
             ClientsOnMemory.send(JSON.stringify(msg));
         }
     });
-
+    let Timout: NodeJS.Timeout;
+    let TimerInterval:  NodeJS.Timeout;
     // si la salle est pleine
     if (client.room.isFull) {
 
@@ -157,7 +158,7 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
         });
 
         // Après 20 s on commencer le timer
-        setTimeout(()=>{
+        Timout=  setTimeout(()=>{
             client.room.IsPartyStarted= true;
             let compteur = 0;
             // on change de page et on envoi une question
@@ -173,7 +174,7 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
             compteur++;
 
             // on démarre une timer interval et envoi une notification toutes les x secondes
-            let TimerInterval= setInterval(() => {
+            TimerInterval= setInterval(() => {
                 console.log(compteur);
                 if(ListQuestionModel.length == compteur)
                 {
@@ -200,7 +201,8 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
 
     // appeler quand le client se déco
     client.on("close", function (w: any) {
-
+        clearInterval(Timout);
+        clearInterval(TimerInterval);
         // on le delete de la room qui lui était attribué.
         room.deleteJoueurOnRoom(client.joueur);
 
