@@ -1,6 +1,6 @@
 
 import { Environnement } from "../Constantes";
-import { Question, ReponseJoueur } from "../class";
+import {Question, ReponseJoueur, Tools} from "../class";
 
 let express = require("express");
 const router = express.Router();
@@ -76,7 +76,7 @@ router.post("/calculResult", function (req :any, res :any) {
         let nombrePointJoueur = 0;
         // 6) fait le tour des reponses du joueur 
         ListReponsesJoueur.forEach((reponseJoueur:ReponseJoueur) =>{
-            nombrePointJoueur += calculResult(reponseJoueur,ListGoodResponse);
+            nombrePointJoueur += Tools.calculResult(reponseJoueur,ListGoodResponse);
         });
         var poitnMax = 0;
         ListGoodResponse.forEach(q=> poitnMax += q.points);
@@ -92,25 +92,25 @@ router.post("/calculResult", function (req :any, res :any) {
 });
 
 
-function calculResult(reponseJoueur :ReponseJoueur, ListGoodResponsesApi :Question[]){
-
-    // 7) recupere l'id de la question dans la liste des questions renvoyé par l'apî
-    let questionPoserAuJoueur : Question = ListGoodResponsesApi.find((ApiReponse :Question) => ApiReponse.id == reponseJoueur.questionId);
-    // console.log("question poser au joueur :");
-    // console.log(questionPoserAuJoueur);
-
-    // 8) on compare s'il a la bonne réponse
-    if (questionPoserAuJoueur.bonneReponse.id == reponseJoueur.reponseUtilisateurId)
-    {
-        // console.log("bonne réponse +")
-        // console.log(questionPoserAuJoueur.points)
-        return questionPoserAuJoueur.points;
-    }
-    else{
-        // console.log("mauvaise réponse ")
-        return 0;
-    }
-}
+// function calculResult(reponseJoueur :ReponseJoueur, ListGoodResponsesApi :Question[]){
+//
+//     // 7) recupere l'id de la question dans la liste des questions renvoyé par l'apî
+//     let questionPoserAuJoueur : Question = ListGoodResponsesApi.find((ApiReponse :Question) => ApiReponse.id == reponseJoueur.questionId);
+//     // console.log("question poser au joueur :");
+//     // console.log(questionPoserAuJoueur);
+//
+//     // 8) on compare s'il a la bonne réponse
+//     if (questionPoserAuJoueur.bonneReponse.id == reponseJoueur.reponseUtilisateurId)
+//     {
+//         // console.log("bonne réponse +")
+//         // console.log(questionPoserAuJoueur.points)
+//         return questionPoserAuJoueur.points;
+//     }
+//     else{
+//         // console.log("mauvaise réponse ")
+//         return 0;
+//     }
+// }
 
 
 module.exports = router;

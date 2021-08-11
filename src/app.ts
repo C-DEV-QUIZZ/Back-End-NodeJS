@@ -5,7 +5,7 @@ const app = express();
 const server  = require("http").createServer(app);
 import * as WebSocket from 'ws';
 import { Utile } from "./Utiles";
-import {Joueur, Message, Question, QuestionModelView, Room} from "./class";
+import {Joueur, Message, Question, QuestionModelView, ReponseJoueur, ResultScore, Room, Tools} from "./class";
 import { IncomingMessage } from "http";
 const wss = new WebSocket.Server({ server});
 var xss = require('xss');
@@ -80,17 +80,6 @@ function SendNotification(client: any,tag:string,message:string,obj:any=null)
 
 // appeler quand un client se connect
 wss.on('connection',async function connection(client: any, req: IncomingMessage) {
-
-    // éxécuté quand un client envoi un message
-    client.on('message', function incoming(message: string) {
-        let Msg:Message = JSON.parse(message);
-        if(Msg.tag != "PlayerResponse")
-            return;
-        console.log('received: %s', Msg.tag);
-        console.log('received: %s', Msg.message);
-        console.log('received: %s', Msg.objet);
-    });
-
     let pseudoUser = xss(req.url.split("/")[1]);
     let msg;
 
@@ -146,6 +135,7 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
     // si la salle est pleine
     let Timout: NodeJS.Timeout;
     let TimerInterval:  NodeJS.Timeout;
+    let listQuestions : Question[];
     if (client.room.isFull) {
 
         // on envoi un socket à tous ceux de la salle pour les prévenirs.
@@ -157,7 +147,6 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
         });
 
         // on récupère x Questions pour les joueurs de la salle
-        let listQuestions;
         listQuestions = await axios.get(Environnement.ADRESSEAPI + 'questions/modeMulti')
             .then(async (response: any) => {
                 return await response.data;
@@ -238,6 +227,35 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
         console.log(`Déconnection du client: ${client.joueur.guid}`);
     })
 
+    // éxécuté quand un client envoi un message
+    client.on('message', function incoming(message: string) {
+        let Msg:Message = JSON.parse(message);
+        if(Msg.tag != "PlayerResponse")
+            return;
+
+        let ReponseJoueurList: ReponseJoueur[] = Msg.objet;
+        client.joueur.listeReponseJoueur = ReponseJoueurList;
+
+        if(room.haveAllResponse)
+        {
+            let listResult : ResultScore[] = []
+            let pointMax = 0;
+            listQuestions.forEach(q=> pointMax += q.points);
+
+            client.room.listJoueur.forEach((joueur:Joueur) =>{
+                let joueurName : string = joueur.pseudo;
+                let nombrePointJoueur = 0;
+                joueur.listeReponseJoueur.forEach((reponseJoueur:ReponseJoueur) =>{
+                    nombrePointJoueur += Tools.calculResult(reponseJoueur,listQuestions);
+                });
+                listResult.push({pseudo : joueurName, score : nombrePointJoueur, scoreMax : pointMax});
+                listResult = listResult.sort(result => result.score).reverse();
+                SendNotification(client,"receivedScore","",JSON.stringify(listResult));
+            });
+
+            console.log("Tous les résultats on été reçu!!!!");
+        }
+    });
 })
 
 // le serveur web socket écoute 
@@ -246,10 +264,6 @@ wss.on("listening",function listening(ws : any) {
 
 }) 
 //#endregion
-wss.on("message",function listening(ws : any) {
-    console.log("************************************************");
-
-})
 
 
 server.listen(Environnement.PORT, function () {

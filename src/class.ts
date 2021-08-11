@@ -1,5 +1,5 @@
 import { debug } from "console";
-import { Environnement } from "./Constantes";
+import {Constantes, Environnement} from "./Constantes";
 import { Utile } from "./Utiles";
 
 export class ReponseJoueur{
@@ -49,7 +49,7 @@ export class Joueur{
     pseudo :string;
     guid : string
     points : number
-    ListeReponse : Map<number,number>;
+    listeReponseJoueur : ReponseJoueur[];
 
     constructor( pseudo : string ="Marcel") {
         this.guid = Utile.getGuidJoueur();
@@ -61,7 +61,7 @@ export class Joueur{
 export class Room{
     static listRoom :Array<Room> = [];
     guid : string;
-    listJoueur : Joueur[]=[];        
+    listJoueur : Joueur[]=[];
     IsPartyStarted : boolean =false;
     constructor(){
         this.guid = Utile.getGuidRoom();
@@ -70,6 +70,11 @@ export class Room{
         while(Room.listRoom.some(r => r.guid == this.guid)){
             this.guid = Utile.getGuidRoom();
         }        
+    }
+
+    public get haveAllResponse()
+    {
+        return this.listJoueur.every(joueur => joueur.listeReponseJoueur != undefined &&  joueur.listeReponseJoueur.length > 0);
     }
 
     public get nbJoueur(){
@@ -95,7 +100,6 @@ export class Room{
 
         if (this.isFull){
             console.log("Dernier joueur dans la salle");
-
         }
 
         console.log(`le joueur ${joueur.guid} est associé à la room ${this.guid}`);
@@ -163,5 +167,33 @@ export class Message{
             return;
         }
         this.objet = obj;
+    }
+}
+
+export class ResultScore
+{
+    pseudo :string;
+    score : number;
+    scoreMax : number;
+}
+
+export class Tools {
+    public static calculResult(reponseJoueur: ReponseJoueur, ListGoodResponsesApi: Question[]) {
+
+        // 7) recupere l'id de la question dans la liste des questions renvoyé par l'apî
+        let questionPoserAuJoueur: Question = ListGoodResponsesApi.find((ApiReponse: Question) => ApiReponse.id == reponseJoueur.questionId);
+        // console.log("question poser au joueur :");
+        // console.log(questionPoserAuJoueur);
+
+        // 8) on compare s'il a la bonne réponse
+        if (questionPoserAuJoueur.bonneReponse.id == reponseJoueur.reponseUtilisateurId) {
+            // console.log("bonne réponse +")
+            // console.log(questionPoserAuJoueur.points)
+            return questionPoserAuJoueur.points;
+        } else {
+            // console.log("mauvaise réponse ")
+            return 0;
+        }
+
     }
 }
