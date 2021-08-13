@@ -5,7 +5,7 @@ const app = express();
 const server  = require("http").createServer(app);
 import * as WebSocket from 'ws';
 import { Utile } from "./Utiles";
-import {Joueur, Message, Question, QuestionModelView, ReponseJoueur, ResultScore, Room, Tools} from "./class";
+import {Joueur, Message, Question, QuestionModelView, ReponseJoueur, ResultScore, Room} from "./class";
 import { IncomingMessage } from "http";
 const wss = new WebSocket.Server({ server});
 var xss = require('xss');
@@ -155,7 +155,7 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
                 console.log("erreur lors du contact avec l'api");
             });
 
-
+        client.room.listQuestions = listQuestions;
         // on convertie les questions en question model view
         // console.log(listQuestions);
         // console.log("=================================");
@@ -240,13 +240,13 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
         {
             let listResult : ResultScore[] = []
             let pointMax = 0;
-            listQuestions.forEach(q=> pointMax += q.points);
+            client.room.listQuestions.forEach((q : Question)=> pointMax += q.points);
 
             client.room.listJoueur.forEach((joueur:Joueur) =>{
                 let joueurName : string = joueur.pseudo;
                 let nombrePointJoueur = 0;
                 joueur.listeReponseJoueur.forEach((reponseJoueur:ReponseJoueur) =>{
-                    nombrePointJoueur += Tools.calculResult(reponseJoueur,listQuestions);
+                    nombrePointJoueur += Utile.calculResult(reponseJoueur,client.room.listQuestions);
                 });
                 listResult.push({pseudo : joueurName, score : nombrePointJoueur, scoreMax : pointMax});
                 listResult = listResult.sort(result => result.score).reverse();

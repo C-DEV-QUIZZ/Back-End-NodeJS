@@ -1,6 +1,7 @@
 
 import { Environnement } from "../Constantes";
-import {Question, ReponseJoueur, Tools} from "../class";
+import {Question, ReponseJoueur} from "../class";
+import {Utile} from "../Utiles";
 
 let express = require("express");
 const router = express.Router();
@@ -76,7 +77,7 @@ router.post("/calculResult", function (req :any, res :any) {
         let nombrePointJoueur = 0;
         // 6) fait le tour des reponses du joueur 
         ListReponsesJoueur.forEach((reponseJoueur:ReponseJoueur) =>{
-            nombrePointJoueur += Tools.calculResult(reponseJoueur,ListGoodResponse);
+            nombrePointJoueur += Utile.calculResult(reponseJoueur,ListGoodResponse);
         });
         var poitnMax = 0;
         ListGoodResponse.forEach(q=> poitnMax += q.points);

@@ -62,6 +62,7 @@ export class Room{
     static listRoom :Array<Room> = [];
     guid : string;
     listJoueur : Joueur[]=[];
+    listQuestions : Question[];
     IsPartyStarted : boolean =false;
     constructor(){
         this.guid = Utile.getGuidRoom();
@@ -175,25 +176,4 @@ export class ResultScore
     pseudo :string;
     score : number;
     scoreMax : number;
-}
-
-export class Tools {
-    public static calculResult(reponseJoueur: ReponseJoueur, ListGoodResponsesApi: Question[]) {
-
-        // 7) recupere l'id de la question dans la liste des questions renvoyé par l'apî
-        let questionPoserAuJoueur: Question = ListGoodResponsesApi.find((ApiReponse: Question) => ApiReponse.id == reponseJoueur.questionId);
-        // console.log("question poser au joueur :");
-        // console.log(questionPoserAuJoueur);
-
-        // 8) on compare s'il a la bonne réponse
-        if (questionPoserAuJoueur.bonneReponse.id == reponseJoueur.reponseUtilisateurId) {
-            // console.log("bonne réponse +")
-            // console.log(questionPoserAuJoueur.points)
-            return questionPoserAuJoueur.points;
-        } else {
-            // console.log("mauvaise réponse ")
-            return 0;
-        }
-
-    }
 }
