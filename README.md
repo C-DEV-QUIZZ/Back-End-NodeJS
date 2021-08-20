@@ -45,5 +45,8 @@ cela installera nodemon sur votre machine
 
 
 ##### A FAIRE:
- - Inclure le serveur web socket 
+ - Inclure le serveur web socket ✔
+
+## Le 20/08/21 
+Deploiement OK
 
