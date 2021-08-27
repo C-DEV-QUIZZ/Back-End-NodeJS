@@ -1,7 +1,8 @@
 module.exports = {
   apps : [{
     script: 'E:/Hebergements/Sites/MESI-BackEnd-dev/dist/app.js',
-    watch: '.'
+    watch: '.',
+    name: "back-develop",
   }],
 
   deploy : {
@@ -12,7 +13,7 @@ module.exports = {
       repo : 'GIT_REPOSITORY',
       path : 'DESTINATION_PATH',
       'pre-deploy-local': '',
-      'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env production',
+      'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env developpement',
       'pre-setup': ''
     }
   }
