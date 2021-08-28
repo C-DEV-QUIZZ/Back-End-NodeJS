@@ -1,7 +1,7 @@
 module.exports = {
   apps : [{
     script: 'E:/Hebergements/Sites/MESI-BackEnd-dev/dist/app.js',
-    watch: 'true', 
+    //watch: 'true', 
     name: "back-develop"
   }],
 
