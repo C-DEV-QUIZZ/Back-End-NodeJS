@@ -230,9 +230,17 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
     // éxécuté quand un client envoi un message
     client.on('message', function incoming(message: string) {
         let Msg:Message = JSON.parse(message);
-        if(Msg.tag != "PlayerResponse")
-            return;
 
+        if(Msg.tag == "PlayerResponse")
+        {
+            ProcessingPlayerResponse(Msg);
+        }
+
+    });
+
+
+    function ProcessingPlayerResponse(Msg:Message)
+    {
         let ReponseJoueurList: ReponseJoueur[] = Msg.objet;
         client.joueur.listeReponseJoueur = ReponseJoueurList;
 
@@ -249,13 +257,14 @@ wss.on('connection',async function connection(client: any, req: IncomingMessage)
                     nombrePointJoueur += Utile.calculResult(reponseJoueur,client.room.listQuestions);
                 });
                 listResult.push({pseudo : joueurName, score : nombrePointJoueur, scoreMax : pointMax});
-                listResult = listResult.sort(result => result.score).reverse();
-                SendNotification(client,"receivedScore","",JSON.stringify(listResult));
+                let tmp = listResult.sort((a, b) => (a.score > b.score ? -1 : 1));
+                console.table((tmp));
+                SendNotification(client,"receivedScore","",JSON.stringify(tmp));
             });
 
             console.log("Tous les résultats on été reçu!!!!");
         }
-    });
+    }
 })
 
 // le serveur web socket écoute 
