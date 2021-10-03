@@ -51,6 +51,5 @@ cela installera nodemon sur votre machine
 Deploiement OK
 
 # fix deploiement
-
 lancement manuel puis deploiement ok 
 
